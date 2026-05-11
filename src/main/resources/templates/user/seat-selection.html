@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+<head>
+  <meta charset="UTF-8">
+  <title>Chọn Ghế - Đặt Vé Xem Phim</title>
+  <style>
+    /* Màn hình rạp chiếu - Làm cong hơn để tạo cảm giác rạp thật */
+    .screen {
+      background: linear-gradient(to bottom, #777, #333);
+      height: 8px;
+      width: 70%;
+      margin: 0 auto 60px auto;
+      border-radius: 50% / 100% 100% 0 0;
+      box-shadow: 0 15px 25px rgba(0,0,0,0.4);
+      color: #999;
+      text-align: center;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 5px;
+    }
+
+    /* Grid ghế ngồi */
+    .seat-container {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 12px;
+      max-width: 550px;
+      margin: 0 auto;
+      padding: 10px;
+    }
+
+    .seat-checkbox { display: none; }
+
+    .seat-label {
+      display: block;
+      width: 40px;
+      height: 40px;
+      line-height: 38px; /* Trừ đi border */
+      text-align: center;
+      background-color: #fff;
+      border: 2px solid #28a745;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #28a745;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+    }
+
+    /* Hiệu ứng khi hover ghế trống */
+    .seat-label:hover:not(.disabled-label) {
+      background-color: #28a745;
+      color: #fff;
+      transform: translateY(-3px);
+    }
+
+    /* Ghế đang chọn */
+    .seat-checkbox:checked + .seat-label {
+      background-color: #28a745 !important;
+      color: #fff !important;
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+    }
+
+    /* Ghế đã bán */
+    .seat-checkbox:disabled + .seat-label {
+      background-color: #e9ecef !important;
+      border-color: #dee2e6 !important;
+      color: #adb5bd !important;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .legend-item { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; }
+    .legend-box-small { width: 20px; height: 20px; border-radius: 4px; }
+
+    @media (max-width: 600px) {
+      .seat-container { grid-template-columns: repeat(6, 1fr); gap: 8px; }
+      .seat-label { width: 35px; height: 35px; line-height: 33px; font-size: 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+  <div class="container py-5">
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show text-center fw-bold shadow-sm mb-4" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      <span th:text="${error}"></span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="row">
+      <div class="col-lg-8">
+        <div class="card shadow-sm border-0 rounded-4 p-4 p-md-5 bg-white mb-4">
+          <div class="text-center mb-5">
+            <h2 class="fw-bold text-dark mb-1" th:text="${showtime.movie.title}"></h2>
+            <p class="text-muted"><i class="bi bi-door-open me-1"></i> <span th:text="${showtime.room.roomName}"></span></p>
+          </div>
+
+          <div class="screen">Màn hình</div>
+
+          <form th:action="@{/user/booking/process}" method="post" id="bookingForm" onsubmit="return handleFormSubmit(event)">
+            <input type="hidden" name="showtimeId" th:value="${showtime.showtimeId}" />
+            <div class="seat-container">
+              <div th:each="seat : ${allSeats}">
+                <input type="checkbox"
+                       class="seat-checkbox"
+                       name="seatIds"
+                       th:id="'seat-' + ${seat.seatId}"
+                       th:value="${seat.seatId}"
+                       th:data-name="${seat.seatName}"
+                       th:disabled="${bookedSeatIds != null and #lists.contains(bookedSeatIds, seat.seatId)}"
+                       onchange="calculateTotal()">
+
+                <label class="seat-label"
+                       th:for="'seat-' + ${seat.seatId}"
+                       th:text="${seat.seatName}">
+                </label>
+              </div>
+            </div>
+
+            <div class="text-center mt-5">
+              <button type="button" class="btn btn-danger btn-lg px-5 fw-bold shadow-sm rounded-pill"
+                      id="btnOpenModal" disabled onclick="showConfirmModal()">
+                XÁC NHẬN ĐẶT GHẾ
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card shadow-sm border-0 rounded-4 sticky-top" style="top: 20px;">
+          <div class="card-header bg-dark text-white py-3 text-center fw-bold rounded-top-4">
+            CHI TIẾT ĐẶT VÉ
+          </div>
+          <div class="card-body p-4">
+            <h5 class="fw-bold text-primary mb-3" th:text="${showtime.movie.title}"></h5>
+            <p class="mb-2"><strong>Rạp:</strong> <span th:text="${showtime.room.roomName}"></span></p>
+            <p class="mb-2"><strong>Suất:</strong> <span class="text-danger fw-bold" th:text="${#temporals.format(showtime.startTime, 'HH:mm - dd/MM/yyyy')}"></span></p>
+            <p class="mb-4"><strong>Giá:</strong> <span class="text-dark fw-bold" th:text="${#numbers.formatDecimal(showtime.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span></p>
+
+            <div class="p-3 bg-light rounded-3 mb-4">
+              <div class="legend-item mb-2"> <div class="legend-box-small bg-white border border-success"></div> <span>Ghế trống</span> </div>
+              <div class="legend-item mb-2"> <div class="legend-box-small bg-success"></div> <span>Đang chọn</span> </div>
+              <div class="legend-item"> <div class="legend-box-small bg-secondary opacity-50"></div> <span>Đã bán</span> </div>
+            </div>
+            <hr>
+            <div class="d-flex justify-content-between align-items-end">
+              <span class="text-muted small">Tạm tính:</span>
+              <h3 class="text-danger fw-bold mb-0"><span id="totalPriceDisplay">0</span> <small>VNĐ</small></h3>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content shadow-lg">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold">Xác nhận đặt vé</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body py-4 text-center" >
+          <h5 class="modal-title fw-bold">Chuyển khoản tiền vé qua Qr sau</h5>
+          <img th:src="@{/qr.jpg}" class="w-50 h-50" alt="Mã thanh toán">
+        </div>
+        <div class="modal-body py-4">
+          <div class="mb-3 text-center">
+            <i class="bi bi-question-circle text-primary" style="font-size: 3rem;"></i>
+            <p class="mt-2">Bạn có chắc chắn muốn đặt các ghế đã chọn?</p>
+          </div>
+          <div class="p-3 bg-light rounded-3">
+            <div class="d-flex justify-content-between mb-2">
+              <span class="confirm-label">Phim:</span>
+              <span class="confirm-value" th:text="${showtime.movie.title}"></span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="confirm-label">Ghế đã chọn:</span>
+              <span class="confirm-value text-success" id="modalSeats">--</span>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span class="confirm-label">Tổng tiền:</span>
+              <span class="confirm-value text-danger" id="modalTotal">0 VNĐ</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Quay lại</button>
+          <button type="button" class="btn btn-danger rounded-pill px-4 fw-bold" onclick="finalSubmit()">Đồng ý & Đặt vé</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script th:inline="javascript">
+    const TICKET_PRICE = [[${showtime.price}]];
+    let isConfirmed = false;
+
+    function calculateTotal() {
+      const selectedSeats = document.querySelectorAll('input[name="seatIds"]:checked');
+      const total = selectedSeats.length * TICKET_PRICE;
+      document.getElementById('totalPriceDisplay').innerText = total.toLocaleString('vi-VN');
+
+      const btnOpenModal = document.getElementById('btnOpenModal');
+      btnOpenModal.disabled = selectedSeats.length === 0;
+    }
+
+    // Hàm hiện Popup và đổ dữ liệu vào Popup
+    function showConfirmModal() {
+      const selectedSeats = document.querySelectorAll('input[name="seatIds"]:checked');
+      const seatNames = Array.from(selectedSeats).map(cb => cb.getAttribute('data-name')).join(", ");
+      const totalText = (selectedSeats.length * TICKET_PRICE).toLocaleString('vi-VN') + " VNĐ";
+
+      document.getElementById('modalSeats').innerText = seatNames;
+      document.getElementById('modalTotal').innerText = totalText;
+
+      const myModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+      myModal.show();
+    }
+
+    // Hàm gọi khi nhấn nút cuối cùng trong Modal
+    function finalSubmit() {
+      isConfirmed = true;
+      document.getElementById('bookingForm').submit();
+    }
+
+    // Ngăn chặn form submit nếu chưa qua bước Modal
+    function handleFormSubmit(event) {
+      if (!isConfirmed) {
+        event.preventDefault();
+        return false;
+      }
+      return true;
+    }
+
+    window.setTimeout(function() {
+      var alert = document.querySelector(".alert");
+      if (alert) { new bootstrap.Alert(alert).close(); }
+    }, 5000);
+  </script>
+</div>
+</body>
+</html>

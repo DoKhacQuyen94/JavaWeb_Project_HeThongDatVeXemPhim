@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="${seat.seatId != null ? 'Cập Nhật Ghế' : 'Thêm Mới Ghế'}">Movie System</title>
+  <style>
+    .form-card {
+      border: none;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+    .form-header {
+      background: linear-gradient(45deg, #1a1a2e, #16213e);
+      color: white;
+      border-radius: 20px 20px 0 0 !important;
+      padding: 25px;
+    }
+    .form-label {
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 8px;
+    }
+    .form-control, .form-select {
+      border-radius: 10px;
+      padding: 12px 15px;
+      border: 1px solid #dee2e6;
+      transition: all 0.3s;
+    }
+    .form-control:focus, .form-select:focus {
+      box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.1);
+      border-color: #e94560;
+    }
+    .btn-save {
+      background-color: #e94560;
+      border: none;
+      color: white;
+      padding: 10px 30px;
+      border-radius: 10px;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+    .btn-save:hover {
+      background-color: #cf3d55;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(233, 69, 96, 0.3);
+    }
+    .btn-cancel {
+      border-radius: 10px;
+      padding: 10px 30px;
+    }
+    .seat-icon-box {
+      width: 45px;
+      height: 45px;
+      background-color: #e94560;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-6 col-md-8">
+
+        <div class="card form-card">
+          <!-- Header -->
+          <div class="card-header form-header border-0">
+            <div class="d-flex align-items-center">
+              <div class="seat-icon-box me-3">
+                <i class="bi bi-grid-3x3-gap-fill fs-5"></i>
+              </div>
+              <div>
+                <h4 class="mb-0 fw-bold" th:text="${seat.seatId != null ? 'Cập Nhật Ghế' : 'Thêm Ghế Mới'}">Form Ghế</h4>
+                <small class="opacity-75">Thiết lập vị trí chỗ ngồi trong phòng chiếu</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Body -->
+          <div class="card-body p-4 p-md-5">
+            <form th:action="@{/admin/seats/save}" th:object="${seat}" method="post">
+
+              <!-- Trường Ẩn ID -->
+              <input type="hidden" th:field="*{seatId}" />
+
+              <!-- Tên Ghế -->
+              <div class="mb-4">
+                <label class="form-label">Tên ghế ngồi <span class="text-danger">*</span></label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light border-end-0"><i class="bi bi-hash"></i></span>
+                  <input type="text" class="form-control border-start-0"
+                         th:field="*{seatName}"
+                         placeholder="Ví dụ: A01, B12, VIP-01..." required>
+                </div>
+                <div class="form-text mt-2 small">
+                  <i class="bi bi-info-circle me-1"></i> Nên đặt theo định dạng Hàng + Số (ví dụ: A01).
+                </div>
+              </div>
+
+              <!-- Chọn Phòng Chiếu -->
+              <div class="mb-4">
+                <label class="form-label">Thuộc phòng chiếu <span class="text-danger">*</span></label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light border-end-0"><i class="bi bi-door-open"></i></span>
+                  <select class="form-select border-start-0" th:field="*{room}" required>
+                    <option value="" selected disabled>-- Chọn phòng chiếu --</option>
+                    <option th:each="r : ${rooms}"
+                            th:value="${r.roomId}"
+                            th:text="${r.roomName}"></option>
+                  </select>
+                </div>
+                <div class="form-text mt-2 small">Ghế này sẽ xuất hiện trong sơ đồ của phòng đã chọn.</div>
+              </div>
+
+              <hr class="my-4 opacity-50">
+
+              <!-- Nút bấm -->
+              <div class="d-flex justify-content-end gap-2">
+                <a th:href="@{/admin/seats}" class="btn btn-light btn-cancel border text-secondary fw-500">
+                  <i class="bi bi-x-lg me-1"></i> Hủy Bỏ
+                </a>
+                <button type="submit" class="btn btn-save">
+                  <i class="bi bi-check-circle me-1"></i> Lưu Thông Tin
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Chú thích -->
+        <div class="text-center mt-4 text-muted small">
+          <p><i class="bi bi-lightbulb me-1"></i> Mẹo: Bạn có thể tạo hàng loạt ghế cho cùng một phòng để tiết kiệm thời gian.</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Đảm bảo nhúng Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

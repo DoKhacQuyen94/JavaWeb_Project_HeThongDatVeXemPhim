@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+<head>
+    <title>Quản lý tài khoản | Movie System</title>
+    <style>
+        :root {
+            --sys-primary: #1a1a2e;
+            --sys-accent: #e94560;
+            --sys-bg: #f4f7f6;
+        }
+
+        /* Sidebar Navigation */
+        .account-nav {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .account-nav .nav-link {
+            color: #555;
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            transition: 0.3s;
+        }
+        .account-nav .nav-link i { font-size: 1.2rem; margin-right: 10px; }
+        .account-nav .nav-link:hover, .account-nav .nav-link.active {
+            background: #fff5f6;
+            color: var(--sys-accent);
+            font-weight: 600;
+        }
+
+        /* Profile Card */
+        .settings-card {
+            background: white;
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .profile-banner {
+            height: 120px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 15px 15px 0 0;
+            position: relative;
+        }
+        .profile-avatar-wrap {
+            position: absolute;
+            bottom: -40px;
+            left: 40px;
+            padding: 5px;
+            background: white;
+            border-radius: 50%;
+        }
+        .avatar-circle {
+            width: 80px;
+            height: 80px;
+            background: var(--sys-accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 800;
+            border: 4px solid white;
+        }
+
+        .form-label { font-weight: 600; color: #333; font-size: 0.85rem; }
+        .form-control {
+            border-radius: 8px;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+        }
+        .form-control:focus {
+            border-color: var(--sys-accent);
+            box-shadow: 0 0 0 0.2rem rgba(233, 69, 96, 0.1);
+        }
+
+        .btn-save-sys {
+            background: var(--sys-primary);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        .btn-save-sys:hover {
+            background: #16213e;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <div class="container py-5">
+        <div class="row g-4">
+
+            <div class="col-lg-3">
+                <div class="account-nav">
+                    <h6 class="text-uppercase text-muted small fw-bold mb-4 px-3">Cài đặt cá nhân</h6>
+                    <a th:href="@{/profile}" class="nav-link active">
+                        <i class="bi bi-person-badge"></i> Thông tin chung
+                    </a>
+                    <a th:href="@{/user/history}" class="nav-link">
+                        <i class="bi bi-clock-history"></i> Lịch sử mua vé
+                    </a>
+                    <hr>
+                    <a href="/logout" class="nav-link text-danger">
+                        <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-9">
+
+                <div th:if="${message}" class="alert alert-success alert-dismissible fade show shadow-sm border-0 rounded-4 mb-4" role="alert">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill fs-4 me-3"></i>
+                        <div>
+                            <strong class="d-block">Thành công!</strong>
+                            <span th:text="${message}">Nội dung thông báo thành công.</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show shadow-sm border-0 rounded-4 mb-4" role="alert">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-exclamation-octagon-fill fs-4 me-3"></i>
+                        <div>
+                            <strong class="d-block">Đã có lỗi xảy ra!</strong>
+                            <span th:text="${error}">Nội dung thông báo lỗi.</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <div class="card settings-card">
+                    <div class="profile-banner">
+                        <div class="profile-avatar-wrap">
+                            <div class="avatar-circle" th:text="${#strings.substring(profile.fullName, 0, 1)}">Q</div>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-4 pt-5 mt-3">
+                        <div class="d-flex justify-content-between align-items-center mb-4 ps-2">
+                            <div>
+                                <h4 class="fw-bold mb-0" th:text="${profile.fullName}">Đỗ Khắc Quyền</h4>
+                                <p class="text-muted small mb-0">Thành viên từ 2026</p>
+                            </div>
+                            <span class="badge bg-success px-3 py-2 rounded-pill">Tài khoản đã xác thực</span>
+                        </div>
+
+                        <form th:action="@{/profile/update}" method="post">
+                            <div class="row g-4">
+                                <div class="col-12">
+                                    <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">Thông tin định danh</h6>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted">Mã khách hàng</label>
+                                    <input type="text" class="form-control bg-light" th:value="'KH-' + ${user.userId}" readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted">Địa chỉ Email</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="bi bi-lock-fill"></i></span>
+                                        <input type="text" class="form-control bg-light" th:value="${user.email}" readonly>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 mt-5">
+                                    <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">Thông tin cá nhân</h6>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Họ và tên đầy đủ <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="fullName" th:value="${profile.fullName}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Số điện thoại liên lạc</label>
+                                    <input type="text" class="form-control" name="phone" th:value="${profile.phone}">
+                                </div>
+
+                                <div class="col-12 mt-5">
+                                    <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">Thay đổi mật khẩu</h6>
+                                </div>
+
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label text-danger">Mật khẩu hiện tại</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white"><i class="bi bi-shield-lock-fill"></i></span>
+                                        <input type="password" class="form-control" name="oldPassword" placeholder="Nhập mật khẩu đang sử dụng để xác nhận">
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Mật khẩu mới</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white"><i class="bi bi-key"></i></span>
+                                        <input type="password" class="form-control" name="newPassword" placeholder="Tối thiểu 6 ký tự">
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Xác nhận mật khẩu mới</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white"><i class="bi bi-check-all"></i></span>
+                                        <input type="password" class="form-control" name="confirmPassword" placeholder="Nhập lại mật khẩu mới">
+                                    </div>
+                                </div>
+                                <div class="col-12 text-end mt-5 pt-3 border-top">
+                                    <button type="reset" class="btn btn-light px-4 me-2 rounded-8">Hủy bỏ</button>
+                                    <button type="submit" class="btn btn-save-sys">
+                                        <i class="bi bi-cloud-check me-2"></i>Cập nhật hồ sơ
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${movie.movieId != null ? 'Cập Nhật Phim' : 'Thêm Phim Mới'}">Movie System</title>
+    <style>
+        .form-card { border: none; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        .form-header { background: linear-gradient(45deg, #1a1a2e, #16213e); color: white; border-radius: 20px 20px 0 0 !important; padding: 25px; }
+        .form-label { font-weight: 600; color: #495057; margin-bottom: 8px; }
+        .form-control, .form-select { border-radius: 10px; padding: 10px 15px; border: 1px solid #dee2e6; }
+        .form-control:focus, .form-select:focus { border-color: #e94560; box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.1); }
+        .poster-preview { width: 100%; max-height: 350px; object-fit: cover; border-radius: 12px; border: 2px dashed #dee2e6; }
+        .btn-save { background-color: #e94560; border: none; color: white; padding: 10px 30px; border-radius: 10px; font-weight: 600; transition: 0.3s; }
+        .btn-save:hover { background-color: #cf3d55; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-xl-10">
+
+                <div class="card form-card">
+                    <div class="card-header form-header border-0">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-danger rounded-circle p-2 me-3 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                                <i class="bi bi-film fs-5"></i>
+                            </div>
+                            <h4 class="mb-0 fw-bold" th:text="${movie.movieId != null ? 'Cập Nhật Thông Tin Phim' : 'Thêm Phim Mới'}">Form Phim</h4>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-4 p-md-5">
+                        <form th:action="@{/admin/movies/save}" th:object="${movie}" method="post">
+                            <input type="hidden" th:field="*{movieId}" />
+
+                            <div class="row">
+                                <!-- Cột trái: Poster -->
+                                <div class="col-lg-4 mb-4">
+                                    <label class="form-label d-block text-center mb-3">Ảnh Poster Phim</label>
+                                    <img id="posterPreview" th:src="${movie.posterUrl != null and movie.posterUrl != '' ? movie.posterUrl : 'https://via.placeholder.com/300x450?text=No+Poster'}"
+                                         class="poster-preview mb-3 shadow-sm" alt="Preview">
+
+                                    <div class="mb-3">
+                                        <label class="form-label small">Đường dẫn Poster (URL) <span class="text-danger">*</span></label>
+                                        <input type="url" class="form-control form-control-sm" th:field="*{posterUrl}"
+                                               id="posterUrlInput" placeholder="https://image-link.com/..." required
+                                               oninput="document.getElementById('posterPreview').src = this.value || 'https://via.placeholder.com/300x450?text=No+Poster'">
+                                    </div>
+                                </div>
+
+                                <!-- Cột phải: Thông tin chi tiết -->
+                                <div class="col-lg-8">
+                                    <div class="mb-3">
+                                        <label class="form-label">Tên Phim <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" th:field="*{title}" placeholder="Nhập tên phim chính xác..." required>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <div class="col-md-6 mb-3 mb-md-0">
+                                            <label class="form-label">Thời Lượng (phút) <span class="text-danger">*</span></label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light"><i class="bi bi-clock"></i></span>
+                                                <input type="number" class="form-control" th:field="*{duration}" required min="1">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Ngày Khởi Chiếu <span class="text-danger">*</span></label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light"><i class="bi bi-calendar-date"></i></span>
+                                                <input type="date" class="form-control" id="releaseDate" name="releaseDate" th:value="*{releaseDate}" required>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Thể Loại <span class="text-muted small">(Giữ Ctrl để chọn nhiều)</span> <span class="text-danger">*</span></label>
+                                        <select class="form-select" name="genreIds" multiple required style="height: 120px;">
+                                            <option th:each="g : ${allGenres}"
+                                                    th:value="${g.genreId}"
+                                                    th:text="${g.name}"
+                                                    th:selected="${selectedGenres != null and selectedGenres.contains(g.genreId)}"></option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label class="form-label">Mô Tả Nội Dung</label>
+                                        <textarea class="form-control" th:field="*{description}" rows="5" placeholder="Tóm tắt nội dung phim..."></textarea>
+                                    </div>
+
+                                    <hr class="my-4 opacity-50">
+
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <a th:href="@{/admin/movies}" class="btn btn-light px-4 border text-secondary">
+                                            <i class="bi bi-x-lg me-1"></i> Hủy
+                                        </a>
+                                        <button type="submit" class="btn btn-save">
+                                            <i class="bi bi-check2-circle me-1"></i> Lưu Phim
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

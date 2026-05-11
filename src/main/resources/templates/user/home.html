@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+<head>
+    <title>Trang Chủ - Hệ Thống Đặt Vé</title>
+    <style>
+        .movie-card {
+            transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+            border-radius: 20px;
+            overflow: hidden;
+            background: #fff;
+        }
+        .movie-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
+        }
+        .poster-wrapper {
+            position: relative;
+            overflow: hidden;
+        }
+        .poster-img {
+            width: 100%;
+            height: 280px;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+        .movie-card:hover .poster-img {
+            transform: scale(1.1);
+        }
+        .showtime-btn {
+            margin: 4px;
+            font-weight: 600;
+            border-radius: 12px;
+            min-width: 85px;
+            border: 2px solid #eee;
+            color: #444;
+            transition: 0.3s;
+        }
+        .showtime-btn:hover:not([disabled]) {
+            background-color: #dc3545;
+            border-color: #dc3545;
+            color: white;
+            transform: translateY(-3px);
+        }
+        .badge-custom {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <div class="container py-5">
+        <!-- Header trang chủ -->
+        <div class="d-flex justify-content-between align-items-end mb-5">
+            <div>
+                <h2 class="fw-bold mb-1 text-uppercase" style="letter-spacing: 1px;">Phim Đang Chiếu</h2>
+                <div class="bg-danger" style="height: 4px; width: 60px; border-radius: 2px;"></div>
+            </div>
+            <div class="text-end d-none d-md-block">
+                <span class="text-muted small d-block">Hôm nay</span>
+                <span class="fw-bold" th:text="${#temporals.format(#temporals.createNow(), 'EEEE, dd/MM/yyyy')}"></span>
+            </div>
+        </div>
+
+        <!-- Trạng thái trống -->
+        <div th:if="${#maps.isEmpty(showtimesByMovie)}" class="alert shadow-sm text-center py-5 bg-white rounded-4 border-0">
+            <i class="bi bi-film fs-1 text-muted mb-3 d-block"></i>
+            <h5 class="fw-bold text-dark">Hiện tại rạp chưa có lịch chiếu mới!</h5>
+            <p class="text-muted">Vui lòng quay lại sau hoặc đăng ký nhận tin từ chúng tôi.</p>
+            <a th:href="@{/home}" class="btn btn-outline-danger rounded-pill px-4 mt-2">Làm mới trang</a>
+        </div>
+
+        <!-- Grid Phim -->
+        <div class="row row-cols-1 row-cols-xl-2 g-4 mb-5">
+            <div class="col" th:each="entry : ${showtimesByMovie}">
+                <div class="card h-100 shadow-sm movie-card border-0">
+                    <div class="row g-0 h-100">
+                        <!-- Poster -->
+                        <div class="col-md-4 poster-wrapper">
+                            <img th:if="${entry.key.posterUrl != null and entry.key.posterUrl != ''}"
+                                 th:src="${entry.key.posterUrl}"
+                                 class="poster-img" alt="Poster">
+                            <div th:unless="${entry.key.posterUrl != null and entry.key.posterUrl != ''}"
+                                 class="bg-secondary text-white h-100 d-flex align-items-center justify-content-center" style="min-height: 280px;">
+                                <i class="bi bi-image fs-1 opacity-25"></i>
+                            </div>
+                        </div>
+
+                        <!-- Nội dung -->
+                        <div class="col-md-8">
+                            <div class="card-body d-flex flex-column h-100 p-4">
+                                <h4 class="card-title fw-bold text-dark mb-2" th:text="${entry.key.title}">Tên Phim</h4>
+
+                                <div class="mb-3">
+                                    <span class="badge badge-custom bg-light text-dark border me-1">
+                                        <i class="bi bi-clock me-1"></i> <span th:text="${entry.key.duration} + ' Phút'"></span>
+                                    </span>
+                                    <span class="badge badge-custom bg-danger text-white">Hot</span>
+                                </div>
+
+                                <p class="card-text text-muted mb-4 flex-grow-1" style="font-size: 0.9rem; line-height: 1.5;"
+                                   th:text="${#strings.abbreviate(entry.key.description, 130)}">Mô tả...</p>
+
+                                <h6 class="fw-bold text-uppercase small text-secondary mb-3" style="letter-spacing: 1px;">Chọn suất chiếu:</h6>
+                                <div class="d-flex flex-wrap">
+
+                                    <th:block th:each="st : ${entry.value}">
+                                        <!-- Suất chiếu CÒN VÉ -->
+                                        <a th:if="${soldOutMap.get(st.showtimeId) == false}"
+                                           th:href="@{/user/showtime/{id}/seats(id=${st.showtimeId})}"
+                                           class="btn shadow-sm showtime-btn p-2">
+                                            <div class="fs-5" th:text="${#temporals.format(st.startTime, 'HH:mm')}">10:00</div>
+                                            <div style="font-size: 0.6rem; opacity: 0.7;" th:text="${#temporals.format(st.startTime, 'dd/MM')}">07/05</div>
+                                        </a>
+
+                                        <!-- Suất chiếu HẾT VÉ -->
+                                        <button th:if="${soldOutMap.get(st.showtimeId) == true}"
+                                                class="btn btn-light showtime-btn p-2 opacity-50 text-muted" disabled>
+                                            <div class="text-decoration-line-through fs-5" th:text="${#temporals.format(st.startTime, 'HH:mm')}">10:00</div>
+                                            <div style="font-size: 0.6rem;">Hết vé</div>
+                                        </button>
+                                    </th:block>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

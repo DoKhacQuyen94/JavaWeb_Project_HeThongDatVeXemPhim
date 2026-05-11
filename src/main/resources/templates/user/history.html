@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+<head>
+  <title>Lịch Sử Đặt Vé - Cinema</title>
+  <style>
+    :root {
+      --primary-color: #4361ee;
+      --danger-soft: #fff5f5;
+      --success-soft: #f0fff4;
+    }
+    .history-container { max-width: 900px; margin-top: 3rem; }
+    .booking-card {
+      border: none;
+      border-radius: 16px;
+      transition: all 0.3s ease;
+      overflow: hidden;
+      background: #fff;
+    }
+    .booking-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.08) !important;
+    }
+    .status-badge {
+      padding: 8px 16px;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .movie-poster-mini {
+      width: 80px;
+      height: 110px;
+      object-fit: cover;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .info-label { color: #6c757d; font-size: 0.85rem; margin-bottom: 2px; }
+    .info-value { color: #2d3436; font-weight: 600; }
+    .btn-cancel {
+      border-radius: 8px;
+      font-size: 0.85rem;
+      padding: 8px 20px;
+      transition: 0.2s;
+    }
+    .empty-state { padding: 80px 0; text-align: center; }
+  </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+  <div class="container history-container mb-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="fw-bold text-dark">Lịch sử đặt vé</h2>
+      <span class="badge bg-light text-dark border p-2">
+                Total: <span th:text="${ticketsByBooking != null ? ticketsByBooking.size() : 0}"></span> đơn hàng
+            </span>
+    </div>
+
+    <!-- Thông báo -->
+    <div th:if="${message}" class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm" role="alert">
+      <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${message}"></span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${error}"></span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- Trạng thái trống -->
+    <div th:if="${ticketsByBooking == null or ticketsByBooking.isEmpty()}" class="empty-state bg-white rounded-4 shadow-sm">
+      <img src="https://cdn-icons-png.flaticon.com/512/4076/4076432.png" width="120" class="mb-4 opacity-50" alt="empty">
+      <h4 class="fw-bold">Bạn chưa có giao dịch nào</h4>
+      <p class="text-muted">Hãy chọn cho mình một bộ phim yêu thích nhé!</p>
+      <a th:href="@{/home}" class="btn btn-primary px-4 rounded-pill mt-2">Đặt vé ngay</a>
+    </div>
+
+    <!-- Danh sách đơn hàng -->
+    <div class="booking-card shadow-sm mb-4" th:each="entry : ${ticketsByBooking}">
+      <th:block th:with="booking=${entry.key}, tickets=${entry.value}, firstTicket=${entry.value[0]}">
+
+        <!-- Header của Card -->
+        <div class="card-header bg-light border-0 d-flex justify-content-between align-items-center py-3 px-4">
+          <div class="small">
+            <span class="text-muted">Mã đơn:</span>
+            <span class="fw-bold text-dark" th:text="'#' + ${booking.bookingId}"></span>
+            <span class="mx-2 text-silver">|</span>
+            <span class="text-muted">Ngày đặt:</span>
+            <span class="fw-bold text-dark" th:text="${#temporals.format(booking.createdAt, 'HH:mm dd/MM/yyyy')}"></span>
+          </div>
+
+          <!-- Trạng thái vé -->
+          <div>
+                        <span th:if="${#strings.equalsIgnoreCase(firstTicket.status, 'cancel')}"
+                              class="status-badge bg-danger text-white">Đã hủy</span>
+            <span th:if="${#strings.equalsIgnoreCase(firstTicket.status, 'paid')}"
+                  class="status-badge bg-success text-white">Thành công</span>
+          </div>
+        </div>
+
+        <!-- Body của Card -->
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col">
+              <h4 class="fw-bold mb-3 text-dark" th:text="${firstTicket.showtime.movie.title}">Tên Phim</h4>
+
+              <div class="row g-3">
+                <div class="col-6 col-md-4">
+                  <div class="info-label"><i class="bi bi-calendar-event me-1"></i> Suất chiếu</div>
+                  <div class="info-value text-danger"
+                       th:text="${#temporals.format(firstTicket.showtime.startTime, 'HH:mm - dd/MM/yyyy')}"></div>
+                </div>
+                <div class="col-6 col-md-4">
+                  <div class="info-label"><i class="bi bi-door-open me-1"></i> Phòng</div>
+                  <div class="info-value" th:text="${firstTicket.showtime.room.roomName}">Phòng 1</div>
+                </div>
+                <div class="col-12 col-md-4">
+                  <div class="info-label"><i class="bi bi-Tags me-1"></i> Vị trí ghế</div>
+                  <div class="d-flex flex-wrap gap-1">
+                                        <span th:each="t : ${tickets}" class="badge bg-dark rounded-1 text-white"
+                                              th:text="${t.seat.seatName}" style="font-size: 0.75rem;"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Giá tiền và thao tác -->
+            <div class="col-md-3 text-md-end mt-4 mt-md-0 border-start-md">
+              <div class="info-label">Tổng cộng</div>
+              <h3 class="text-danger fw-bold mb-3">
+                <span th:text="${#numbers.formatDecimal(tickets.size() * firstTicket.showtime.price, 0, 'COMMA', 0, 'POINT')}"></span> <small>đ</small>
+              </h3>
+
+              <!-- Nút Hủy vé (Chỉ hiện nếu chưa hủy và cách giờ chiếu > 24h) -->
+              <form th:action="@{/user/history/cancel}" method="post"
+                    onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này không?');"
+                    th:if="${!#strings.equalsIgnoreCase(firstTicket.status, 'cancel') and #temporals.createNow().plusHours(24).isBefore(firstTicket.showtime.startTime)}">
+                <input type="hidden" name="bookingId" th:value="${booking.bookingId}" />
+                <button type="submit" class="btn btn-outline-danger btn-cancel w-100">
+                  <i class="bi bi-x-circle me-1"></i> Hủy đơn
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </th:block>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

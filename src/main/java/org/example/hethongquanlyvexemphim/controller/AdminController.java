@@ -15,6 +15,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequiredArgsConstructor
 
 public class AdminController {
+
     private final IGenreService genreService;
     private final HttpSession session;
     @GetMapping
@@ -73,4 +74,6 @@ public class AdminController {
         }
         return "redirect:/admin/genres";
     }
+
+
 }

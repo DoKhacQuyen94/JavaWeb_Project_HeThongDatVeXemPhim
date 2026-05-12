@@ -21,4 +21,6 @@ public interface TicketRepository extends JpaRepository<Ticket, Integer> {
     // Trong file TicketRepository.java
     long countByShowtime_ShowtimeIdAndStatusNot(Integer showtimeId, String status);
     boolean existsByShowtime_ShowtimeIdAndSeat_SeatIdAndStatusNotIgnoreCase(Integer showtimeId, Integer seatId, String status);
+
+    long countByStatusNotIgnoreCase(String cancel);
 }

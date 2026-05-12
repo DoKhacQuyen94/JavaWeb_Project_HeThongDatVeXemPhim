@@ -6,14 +6,18 @@ import org.example.hethongquanlyvexemphim.model.Movie;
 import org.example.hethongquanlyvexemphim.model.Showtime;
 import org.example.hethongquanlyvexemphim.model.User;
 import org.example.hethongquanlyvexemphim.model.UserProfile;
+import org.example.hethongquanlyvexemphim.repository.IUserRepository;
+import org.example.hethongquanlyvexemphim.repository.MovieRepository;
 import org.example.hethongquanlyvexemphim.service.IUserProfileService;
 import org.example.hethongquanlyvexemphim.service.IUserService;
 import org.example.hethongquanlyvexemphim.service.ShowtimeService;
+import org.example.hethongquanlyvexemphim.service.impl.AdminService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +30,9 @@ public class UserController {
     private final IUserService userService;
     private final IUserProfileService userProfileService;
     private final ShowtimeService showtimeService;
+    private final AdminService adminService;
+    private final MovieRepository movieRepository;
+    private final IUserRepository userRepository;
     private final HttpSession session;
 
     @GetMapping("/register")
@@ -33,23 +40,51 @@ public class UserController {
         model.addAttribute("register", new User());
         return "register";
     }
-    @GetMapping({"/","/home"})
+    @GetMapping({"/", "/home"})
     public String home(Model model) {
         User user = (User) session.getAttribute("user");
-        if ( user != null && user.getRole().equalsIgnoreCase("admin")) {
-            return "admin/admin"; // Trang quản trị
-        } else {
-            // 1. Lấy tất cả suất chiếu sắp tới
-            List<Showtime> allShowtimes = showtimeService.getUpcomingShowtimes();
 
-            // 2. Gộp theo Phim (Phải đảm bảo Grouping không bị null)
+        // --- LUỒNG CHO ADMIN ---
+        if (user != null && "admin".equalsIgnoreCase(user.getRole())) {
+            try {
+                // Sử dụng các giá trị mặc định để tránh lỗi Null ở HTML
+                Double revenue = adminService.getTotalRevenue();
+                model.addAttribute("totalRevenue", revenue != null ? revenue : 0.0);
+                model.addAttribute("totalTickets", adminService.getTotalTickets());
+                model.addAttribute("totalMovies", movieRepository.count());
+                model.addAttribute("totalUsers", userRepository.countByRole("user"));
+
+                // Dữ liệu biểu đồ (Bọc trong list trống nếu lỗi để tránh vỡ Chart.js)
+                List<String> labels = adminService.getRevenueLabels();
+                List<Double> data = adminService.getRevenueData();
+
+                model.addAttribute("revenueLabels", labels != null ? labels : new ArrayList<String>());
+                model.addAttribute("revenueData", data != null ? data : new ArrayList<Double>());
+
+            } catch (Exception e) {
+                // Nếu lỗi SQL thống kê, Admin vẫn vào được trang nhưng thấy số 0
+                model.addAttribute("error", "Lỗi tải thống kê: " + e.getMessage());
+                model.addAttribute("totalRevenue", 0.0);
+                model.addAttribute("revenueLabels", new ArrayList<String>());
+                model.addAttribute("revenueData", new ArrayList<Double>());
+            }
+            return "admin/admin";
+        }
+
+        // --- LUỒNG CHO USER THƯỜNG ---
+        else {
+            // 1. Lấy suất chiếu (Tránh NullPointer nếu danh sách trống)
+            List<Showtime> allShowtimes = showtimeService.getUpcomingShowtimes();
+            if (allShowtimes == null) allShowtimes = new ArrayList<>();
+
+            // 2. Gộp theo Phim
             Map<Movie, List<Showtime>> showtimesByMovie = allShowtimes.stream()
+                    .filter(st -> st.getMovie() != null) // Bảo vệ chống dữ liệu rác
                     .collect(Collectors.groupingBy(Showtime::getMovie));
 
-            // 3. Truyền đúng tên biến vào Model
             model.addAttribute("showtimesByMovie", showtimesByMovie);
 
-            // 4. Tạo map hết vé (Nếu thiếu cái này HTML sẽ lỗi hoặc không hiện nút)
+            // 3. Map hết vé (Sold out)
             Map<Integer, Boolean> soldOutMap = new HashMap<>();
             for (Showtime st : allShowtimes) {
                 soldOutMap.put(st.getShowtimeId(), showtimeService.isSoldOut(st.getShowtimeId()));
@@ -58,7 +93,6 @@ public class UserController {
 
             return "user/home";
         }
-
     }
     @GetMapping("/login")
     public String loginPage(Model model) {

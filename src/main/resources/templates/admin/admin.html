@@ -81,81 +81,8 @@
                 </div>
             </div>
         </div>
-
-        <div class="row g-4">
-            <div class="col-lg-8">
-                <div class="chart-container">
-                    <h5 class="fw-bold mb-4 text-dark"><i class="bi bi-bar-chart-line me-2"></i>Doanh thu 7 ngày gần nhất</h5>
-                    <canvas id="revenueChart" height="300"></canvas>
-                </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="chart-container h-100">
-                    <h5 class="fw-bold mb-4 text-dark"><i class="bi bi-pie-chart me-2"></i>Tỉ lệ vé theo phòng</h5>
-                    <canvas id="roomChart"></canvas>
-                </div>
-            </div>
-        </div>
     </div>
 
-    <script th:inline="javascript">
-        // 1. Lấy dữ liệu Doanh thu từ Backend
-        const revenueLabels = [[${revenueLabels}]];
-        const revenueData = [[${revenueData}]];
-
-        // Biểu đồ Doanh Thu (Line Chart)
-        const ctxRevenue = document.getElementById('revenueChart').getContext('2d');
-        new Chart(ctxRevenue, {
-            type: 'line',
-            data: {
-                labels: revenueLabels,
-                datasets: [{
-                    label: 'Doanh thu (VNĐ)',
-                    data: revenueData,
-                    borderColor: '#4361ee',
-                    backgroundColor: 'rgba(67, 97, 238, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return value.toLocaleString('vi-VN') + ' đ';
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-        // 2. Biểu đồ Tỉ lệ vé (Pie Chart) - Ví dụ dữ liệu mẫu, Quyền có thể đẩy từ Model sang
-        const ctxRoom = document.getElementById('roomChart').getContext('2d');
-        new Chart(ctxRoom, {
-            type: 'doughnut', // Dùng doughnut nhìn sẽ hiện đại hơn pie
-            data: {
-                labels: ['Phòng 01', 'Phòng 02', 'IMAX'],
-                datasets: [{
-                    data: [45, 25, 30],
-                    backgroundColor: ['#4361ee', '#e94560', '#f1c40f'],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'bottom' }
-                },
-                cutout: '70%' // Tạo lỗ hổng ở giữa cho đẹp
-            }
-        });
-    </script>
 </div>
 </body>
 </html>

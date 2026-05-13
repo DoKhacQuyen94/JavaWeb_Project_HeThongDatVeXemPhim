@@ -53,20 +53,10 @@ public class UserController {
                 model.addAttribute("totalTickets", adminService.getTotalTickets());
                 model.addAttribute("totalMovies", movieRepository.count());
                 model.addAttribute("totalUsers", userRepository.countByRole("user"));
-
-                // Dữ liệu biểu đồ (Bọc trong list trống nếu lỗi để tránh vỡ Chart.js)
-                List<String> labels = adminService.getRevenueLabels();
-                List<Double> data = adminService.getRevenueData();
-
-                model.addAttribute("revenueLabels", labels != null ? labels : new ArrayList<String>());
-                model.addAttribute("revenueData", data != null ? data : new ArrayList<Double>());
-
             } catch (Exception e) {
                 // Nếu lỗi SQL thống kê, Admin vẫn vào được trang nhưng thấy số 0
                 model.addAttribute("error", "Lỗi tải thống kê: " + e.getMessage());
                 model.addAttribute("totalRevenue", 0.0);
-                model.addAttribute("revenueLabels", new ArrayList<String>());
-                model.addAttribute("revenueData", new ArrayList<Double>());
             }
             return "admin/admin";
         }

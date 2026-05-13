@@ -13,7 +13,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @RequestMapping("/admin/rooms")
 @RequiredArgsConstructor
-public class RoomController {
+public class AdminRoomController {
 
     private final RoomService roomService;
     private final HttpSession session;

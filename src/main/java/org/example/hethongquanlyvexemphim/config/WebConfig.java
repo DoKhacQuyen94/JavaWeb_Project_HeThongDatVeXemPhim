@@ -16,12 +16,8 @@ public class WebConfig implements WebMvcConfigurer {
             @Override
             public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
                 User user = (User) request.getSession().getAttribute("user");
-//                if (user == null) {
-//                    response.sendRedirect("/home");
-//                    return true;
-//                }
                 // Chặn User thường vào link Admin
-                if (request.getRequestURI().startsWith("/admin") && !user.getRole().equalsIgnoreCase("admin")) {
+                if (user!= null && request.getRequestURI().startsWith("/admin") && !user.getRole().equalsIgnoreCase("admin")) {
                     response.sendRedirect("/home?error=denied");
                     return false;
                 }

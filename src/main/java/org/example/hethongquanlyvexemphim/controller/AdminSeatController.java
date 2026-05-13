@@ -14,7 +14,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @RequestMapping("/admin/seats")
 @RequiredArgsConstructor
-public class SeatController {
+public class AdminSeatController {
 
     private final SeatService seatService;
     private final RoomService roomService;

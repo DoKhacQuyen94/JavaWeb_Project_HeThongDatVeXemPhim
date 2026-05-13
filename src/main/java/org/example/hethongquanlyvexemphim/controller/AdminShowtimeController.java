@@ -3,7 +3,6 @@ package org.example.hethongquanlyvexemphim.controller;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.example.hethongquanlyvexemphim.model.Showtime;
-import org.example.hethongquanlyvexemphim.model.User;
 import org.example.hethongquanlyvexemphim.service.MovieService;
 import org.example.hethongquanlyvexemphim.service.RoomService;
 import org.example.hethongquanlyvexemphim.service.ShowtimeService;
@@ -15,11 +14,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @RequestMapping("/admin/showtimes")
 @RequiredArgsConstructor
-public class ShowtimeController {
+public class AdminShowtimeController {
     private final ShowtimeService showtimeService;
     private final RoomService roomService;
     private final MovieService movieService;
-    private final HttpSession session;
 
     // 1. LIỆT KÊ DANH SÁCH (Read)
     @GetMapping

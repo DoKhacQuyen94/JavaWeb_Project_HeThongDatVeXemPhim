@@ -16,7 +16,7 @@ import java.util.List;
 @Controller
 @RequestMapping("/admin/movies")
 @RequiredArgsConstructor
-public class MovieController {
+public class AdminMovieController {
     private final MovieService movieService;
     private final IGenreService genreService;
     private final HttpSession session;

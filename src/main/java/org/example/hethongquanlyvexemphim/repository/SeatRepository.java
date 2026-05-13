@@ -9,5 +9,4 @@ import java.util.List;
 @Repository
 public interface SeatRepository extends JpaRepository<Seat, Integer> {
     List<Seat> findByRoom_RoomId(Integer roomId);
-    int countByRoom_RoomId(Integer roomId);
 }

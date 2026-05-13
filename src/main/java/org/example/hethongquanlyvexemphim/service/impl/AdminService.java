@@ -20,18 +20,6 @@ public class AdminService {
         Double rev = bookingRepository.getTotalRevenue();
         return rev != null ? rev : 0.0;
     }
-
-    public List<String> getRevenueLabels() {
-        return bookingRepository.getRevenueByDay().stream()
-                .map(obj -> obj[0].toString()) // Trả về chuỗi ngày YYYY-MM-DD
-                .toList();
-    }
-
-    public List<Double> getRevenueData() {
-        return bookingRepository.getRevenueByDay().stream()
-                .map(obj -> Double.parseDouble(obj[1].toString())) // Trả về số tiền
-                .toList();
-    }
     public long getTotalTickets() {
         // Trả về tổng số vé không bị hủy
         return ticketRepository.countByStatusNotIgnoreCase("cancel");

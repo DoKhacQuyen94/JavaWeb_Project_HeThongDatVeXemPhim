@@ -7,9 +7,6 @@ import java.util.List;
 
 @Repository
 public interface TicketRepository extends JpaRepository<Ticket, Integer> {
-    // Kiểm tra xem ghế đã có người đặt tại suất chiếu đó chưa
-    boolean existsByShowtime_ShowtimeIdAndSeat_SeatId(Integer showtimeId, Integer seatId);
-
     // Lấy danh sách vé đã đặt của một suất chiếu (để hiển thị sơ đồ ghế)
     List<Ticket> findByShowtime_ShowtimeId(Integer showtimeId);
 

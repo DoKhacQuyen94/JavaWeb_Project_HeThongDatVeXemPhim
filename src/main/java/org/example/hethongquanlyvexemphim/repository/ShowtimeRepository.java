@@ -10,6 +10,4 @@ import java.util.List;
 public interface ShowtimeRepository extends JpaRepository<Showtime, Integer> {
     List<Showtime> findByRoom_RoomId(Integer roomId);
 
-    // Lấy các suất chiếu trong tương lai
-    List<Showtime> findByStartTimeAfterOrderByStartTimeAsc(LocalDateTime now);
 }

@@ -14,7 +14,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/admin/genres")
 @RequiredArgsConstructor
 
-public class AdminController {
+public class AdminGenresController {
 
     private final IGenreService genreService;
     private final HttpSession session;
